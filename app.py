@@ -7,7 +7,7 @@ import joblib
 app = FastAPI()
 
 # Load the trained linear regression model
-lr_sklearn = joblib.load('regression.pkl')
+lr_model = joblib.load('lr_model.joblib')
 
 class PredictionRequest(BaseModel):
     X: List[float]
@@ -21,7 +21,7 @@ def predict_sales(request: PredictionRequest):
     X_array = np.array(X).reshape(-1, 1)
 
     # Make predictions using the loaded model
-    Y_pred = lr_sklearn.predict(X_array)
+    Y_pred = lr_model.predict(X_array)
 
     return {"predictions": Y_pred.tolist()}
 
