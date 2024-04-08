@@ -1,19 +1,31 @@
-import joblib
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import List
 import numpy as np
-import pandas as pd
-from sklearn.linear_model import LinearRegression
+import joblib
 
-# Load the data
-path = "Data/tvmarketing.csv"
-adv = pd.read_csv(path)
+app = FastAPI()
 
-# Extract features and target
-X = adv['TV'].values.reshape(-1, 1)
-Y = adv['Sales'].values
+# Load the trained linear regression model
+lr_model = joblib.load('lr_model.joblib')
 
-# Train the linear regression model
-lr_sklearn = LinearRegression()
-lr_sklearn.fit(X, Y)
+class PredictionRequest(BaseModel):
+    X: List[float]
 
-# Save the trained model using joblib
-joblib.dump(lr_sklearn, 'regression.pkl')
+@app.post("/predict")
+def predict_sales(request: PredictionRequest):
+    # Extract input data from request
+    X = request.X
+
+    # Convert input data to numpy array and reshape it
+    X_array = np.array(X).reshape(-1, 1)
+
+    # Make predictions using the loaded model
+    Y_pred = lr_model.predict(X_array)
+
+    return {"predictions": Y_pred.tolist()}
+
+# Run the FastAPI application
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
